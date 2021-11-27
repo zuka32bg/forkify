@@ -1,5 +1,5 @@
 import View from './View.js';
-import icons from 'url:../../img/icons.svg';
+import icons from 'url:../../img/icons.svg'; // Parcel 2
 
 class PaginationView extends View {
   _parentElement = document.querySelector('.pagination');
@@ -20,7 +20,7 @@ class PaginationView extends View {
       this._data.results.length / this._data.resultsPerPage
     );
 
-    // Page 1, i ima jos str
+    // Page 1, and there are other pages
     if (curPage === 1 && numPages > 1) {
       return `
         <button data-goto="${
@@ -34,7 +34,7 @@ class PaginationView extends View {
       `;
     }
 
-    // Last str
+    // Last page
     if (curPage === numPages && numPages > 1) {
       return `
         <button data-goto="${
@@ -48,7 +48,7 @@ class PaginationView extends View {
       `;
     }
 
-    // druga str
+    // Other page
     if (curPage < numPages) {
       return `
         <button data-goto="${
@@ -70,7 +70,7 @@ class PaginationView extends View {
       `;
     }
 
-    // Page 1,nema vise str
+    // Page 1, and there are NO other pages
     return '';
   }
 }

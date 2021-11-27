@@ -1,15 +1,22 @@
 import * as model from './model.js';
-import { MODAL_CLOSE_SEC } from './config.js';
 import recipeView from './views/recipeView.js';
 import searchView from './views/searchView.js';
 import resultsView from './views/resultsView.js';
 import paginationView from './views/paginationView.js';
 import bookmarksView from './views/bookmarksView.js';
-import addRecipeView from './views/addRecipeView.js';
 
+// import icons from '../img/icons.svg'; parcel 1
+import icons from 'url:../img/icons.svg'; //error u index.html
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-import { async } from 'regenerator-runtime';
+const recipeContainer = document.querySelector('.recipe');
+
+// if (module.hot) {
+//   module.hot.accept();
+// }
+// https://forkify-api.herokuapp.com/v2
+
+///////////////////////////////////////
 
 const controlRecipes = async function () {
   try {
@@ -17,111 +24,86 @@ const controlRecipes = async function () {
 
     if (!id) return;
     recipeView.renderSpinner();
-
-    // update rez
+    // 3) Render bkmrk
+    bookmarksView.render(model.state.bookmarks);
+    // update results view za markovane sr
     resultsView.update(model.getSearchResultsPage());
 
-    //update bkmrk view
-    bookmarksView.update(model.state.bookmarks);
-
-    // ucitavanje recepta
+    //ucitavanje recepta
     await model.loadRecipe(id);
 
-    // render recept
+    // renderovanje recep
     recipeView.render(model.state.recipe);
+
+    // update  bkmrk
+    bookmarksView.update(model.state.bookmarks);
   } catch (err) {
     recipeView.renderError();
     console.error(err);
   }
 };
-
 const controlSearchResults = async function () {
   try {
     resultsView.renderSpinner();
-
-    // Get search query
+    //get srch querry
     const query = searchView.getQuery();
     if (!query) return;
-
-    //  Load search results
+    //ucitavanje src
     await model.loadSearchResults(query);
+    //render
+    // resultsView.render(model.state.search.results); svi rezultati
 
-    // Render rez
     resultsView.render(model.getSearchResultsPage());
 
-    // Render buttona
     paginationView.render(model.state.search);
+
+    //render initial pagination
   } catch (err) {
     console.log(err);
   }
 };
 
 const controlPagination = function (goToPage) {
-  resultsView.render(model.getSearchResultsPage(goToPage));
+  //render new res
 
+  resultsView.render(model.getSearchResultsPage(goToPage));
+  //render new pag buttons
   paginationView.render(model.state.search);
 };
 
 const controlServings = function (newServings) {
-  // update servings
+  // Update the recipe servings (in state)
   model.updateServings(newServings);
 
+  // Update the recipe view
   recipeView.update(model.state.recipe);
 };
-
 const controlAddBookmark = function () {
-  //  dodaj/ukloni iz bkmrk
+  // 1) dodavanje i uklanjanje bookmark
   if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
   else model.deleteBookmark(model.state.recipe.id);
 
-  // Update rec
+  // 2) Update recipta
   recipeView.update(model.state.recipe);
 
-  // Render bkmrk
-  bookmarksView.render(model.state.bookmarks);
+  model.addBookmark(model.state.recipe);
+  console.log(model.state.recipe);
 };
-
 const controlBookmarks = function () {
   bookmarksView.render(model.state.bookmarks);
 };
-
-const controlAddRecipe = async function (newRecipe) {
-  try {
-    addRecipeView.renderSpinner();
-
-    // upload novog recepta
-    await model.uploadRecipe(newRecipe);
-    console.log(model.state.recipe);
-
-    // Render recipe
-    recipeView.render(model.state.recipe);
-
-    // poruka
-    addRecipeView.renderMessage();
-
-    // Render bkmrk
-    bookmarksView.render(model.state.bookmarks);
-
-    // promena id
-    window.history.pushState(null, '', `#${model.state.recipe.id}`);
-
-    // zatvara formu
-    setTimeout(function () {
-      addRecipeView.toggleWindow();
-    }, MODAL_CLOSE_SEC * 1000);
-  } catch (err) {
-    console.error('💥', err);
-    addRecipeView.renderError(err.message);
-  }
-};
-
 const init = function () {
-  bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   recipeView.addHandlerAddBookmark(controlAddBookmark);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
-  addRecipeView.addHandlerUpload(controlAddRecipe);
+  bookmarksView.addHandlerRender(controlBookmarks);
+  // addRecipeView.addHandlerUpload(controlAddRecipe);
 };
 init();
+
+const clearBookmakrs = function () {
+  localStorage.clear('bookmarks');
+};
+// clearBookmakrs();
